@@ -1,0 +1,299 @@
+<%- include ("includes/header", {
+   "title": "Blog"
+}) %>
+
+<!-- <div class="container" style="margin-top: 50px; margin-bottom: 50px;">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Blog</h2>
+        </div>
+    </div>
+
+   
+</div> -->
+
+ 
+
+ <div class="container" style="margin-top: 50px; margin-bottom: 50px;">
+     <%- include ("includes/ResponseAlert", {
+         "request": request
+     }) %>
+ 
+     <div class="row">
+         <div class="col-md-4">
+             <h1>Blog</h1>
+         </div>
+     </div>
+     <p id="status"></p>
+ 
+
+
+     
+     <div class="row">
+         <%
+            usersList.forEach(function(user){user.uploaded.forEach(function(singleFile){
+         %>
+         <div class="col-md-3" style="margin-top: 30px;">
+ 
+            <div class="card">
+                <div class="card-body" style="font-size: 100px; text-align: center; height: 300px;">
+                    <i class="fa fa-file-text-o"></i>
+                </div>
+
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3>
+                                
+                                <a href="javascript:void(0);"
+                                    onclick="viewFile(this);"
+                                    data-id="<%= singleFile._id %>"
+                                    data-name="<%= singleFile.name %>"
+                                    data-location="<%=singleFile.filePath %>"
+                                    data-type="<%= singleFile.type %>"
+                                    data-wallet = "<%= user.wallet %>"
+                                    data-author-name = "<%= user.name%>"
+                                    >
+                                    
+                                    <%= user.name.substring(0,6) %>
+                                    <br/>
+                                    <%= singleFile.name.substring(0,12) %>
+                                    
+                                    <%= (singleFile.name.length > 20) ? "..." : "" %>
+                                </a>
+                                <h3>2$</h3>
+                            </h3>
+                            <button href="javascript:void(0);" class="btn btn-outline-success" data-id="<%= singleFile._id %>" onclick="buyItem(this);" data-wallet = "<%= user.wallet %> " >Buy Item</button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+         <% })}) %>
+     </div>
+ 
+ </div>
+ 
+<!-- modal -->
+
+<div class="modal fade" id="viewFileModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+        
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="width: 100%; height:100%;">
+               
+            </div>
+        
+           
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+                <form method="POST" action="<%= request.mainURL %>/ShareViaLink" id="form-share-via-link" style="display: contents;">
+                    <input type="hidden" name="_id" required />
+                </form>
+
+                <!-- <form method="POST" action="<%= request.mainURL %>/buyItem" id="form-buy-item">
+                    
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Buy this Item</button>
+
+                    
+                </form> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script type="text/javascript" src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.4.0"></script>
+<script src="https://unpkg.com/downloadjs@1.4.7"></script>
+<script src="/public/js/docx-preview.js"></script>
+ <script type="text/javascript">
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    // Dia chi cua contract
+    const contractAddress = '';
+    const contractABI = [
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "Deposit",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "receiver",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "receiver",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "Withdrawal",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "balances",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "deposit",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "receiver",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
+
+    async function buyItem(self) {
+        
+        var wallet = self.getAttribute("data-wallet")
+        console.log(wallet)
+      try {
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
+        const transaction = await contract.transfer(wallet,2);        
+        await transaction.wait();
+        document.getElementById('status').innerHTML = 'Payment successful!';
+      } catch (error) {
+        console.error(error);
+        document.getElementById('status').innerHTML = 'Payment failed!';
+      }
+    }
+    ethereum.request({method: 'eth_requestAccounts'}).then(() => {
+      // Đã kết nối đến tài khoản MetaMask
+    }).catch((error) => {
+      console.error(error);
+      document.getElementById('status').innerHTML = 'Error connecting to MetaMask!';
+    });
+
+
+
+     function viewFile(self) {
+        var _id = self.getAttribute("data-id");
+        var name = self.getAttribute("data-name");
+        var type = self.getAttribute("data-type");
+        var authorName = self.getAttribute("data-author-name");
+        var wallet = self.getAttribute("data-wallet");
+        document.querySelector("#viewFileModal .modal-title").innerHTML = name;
+        var modalBodyHtml = "";
+        
+        
+        modalBodyHtml+=`<h3>Author: ${authorName}</h3>`
+        modalBodyHtml+=`<h3>wallet: ${wallet}</h2>`
+        modalBodyHtml+= '<h3>Description</h3>'
+        modalBodyHtml+= "<p>Historically, surnames evolved as a way to sort people into groups - by occupation, place of origin, clan affiliation, patronage, parentage, adoption, and even physical characteristics (like red hair). Many of the modern surnames in the dictionary can be traced back to Britain and Ireland.</p>"
+        
+        document.querySelector("#viewFileModal .modal-body").innerHTML = modalBodyHtml;
+        $("#viewFileModal").modal("show");
+
+        document.getElementById("form-delete-file")._id.value = _id;
+        document.getElementById("form-share-via-link")._id.value = _id;
+    }
+  
+    
+</script>
+
+
+<%- include ("includes/footer") %>
